@@ -1,0 +1,83 @@
+/* The purpose of this code is to forecast top NBA scorers seasonal Points per game based on prior individual performance metrics
+
+Last modified by: Sandeep Kahlon
+Last modified on: 07.12.2021
+
+Notes: 
+
+Performance metrics are inclusive of (height, player age, field goal %, three point %, free throw %, minutes per game, field goals attempted, and conference)
+
+* For Sports Betting / Observational purposes *
+*/
+
+*****************************
+*  Import Excel File Below  *
+*****************************
+
+clear all
+cd /users/sandeepk/Desktop/STATA_SK
+import excel "STATA nba.xlsx", sheet("Sheet1") firstrow
+
+
+//renaming of variables in STATA format//
+ren YPPG PPG
+ren PlayerN Player
+ren X2AGE Age
+ren X3FG Fg_percent
+ren X43pt Three_percent
+ren X1HeightinCm Height
+ren X5FT Ft_percent
+ren X6FGA FGA
+ren X7MPG MPG
+ren IndicatorConf Conference
+
+
+//Labeling of variables for clean output display//
+label var Player "Player Name"
+label var PPG "Points Per Game"
+label var Height "Height (cm)"
+label var Age "Age"
+label var Fg_percent "FG%"
+label var Three_percent "3pt%"
+label var Ft_percent "FT%"
+label var FGA "FGA"
+label var MPG "MPG"
+label var Conference "Conference"
+
+//attachment of value label to the two conferences (Western & Eastern)//
+label define con 0"Eastern Conference" 1"Western Conference"
+label values Conference con
+
+//creation of new variable/column calculating a player's points per minute//
+* For Value determination & strategic wager Purposes *
+gen points_per_minute = PPG/MPG
+label var points_per_minute "Points Per Minute"
+
+//Check for duplicates//
+duplicates report
+
+//Regression analysis for all independent variables with respect to points per game//
+* Evaluation of P-values and determination of highest correlated variables *
+regress PPG Height Age Fg_percent Three_percent Ft_percent FGA MPG Conference 
+
+//Model of points per game with respect to highest correlated variables: height, field goal%, free throw %, and field goals attempted//
+* prediction output located in dataset *
+regress PPG Height Fg_percent Ft_percent FGA
+predict guessPPG 
+
+//Calculation of errors in prediction relative to real-time output//
+* Errors located in dataset *
+gen Errors = PPG - guessPPG
+label var Errors "Errors"
+
+// Cross table view of top NBA players age in respect to conference//
+tabulate Age Conference
+
+//new variable calculating the average age of top players in respective conferences//
+* to evaluate player's stage of career relative to conference average *
+* For Value determination & strategic wager Purposes * 
+egen Avg_Age_conf = mean(Age), by(Conference)
+label var Avg_Age_conf "Average age in Conference"
+
+//ordered in visible format//
+order Player PPG guessPPG Errors Height Age Fg_percent FGA Three_percent Ft_percent MPG points_per_minute Avg_Age_conf Conference
