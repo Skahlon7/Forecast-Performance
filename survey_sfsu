@@ -1,0 +1,78 @@
+#Survey design and analysis on SFSU Covid Survey
+save mydata.dta, replace
+
+
+tab sex 
+
+capture log close
+
+log using log.log, replace
+
+gen male=sex==1
+gen female=sex==2
+gen othersex=sex>2
+replace othersex=. if sex==.
+
+tab female
+
+tabulate sex
+
+
+replace adult=. if astatflg==0
+
+gen youth=age<19
+tab youth
+
+*Data Cleansing for Survey Data
+*MaskMandateLift
+capture log close
+
+log using log.log, replace
+gen MandateLift=1 if Q1=="Yes"
+replace MandateLift=2 if Q1=="No"
+replace MandateLift=3 if Q1=="Not Sure"
+
+
+***Work for Datacamp
+
+
+clear 
+capture log close
+log using log.log, replace
+
+gen MandateLift=1 if Q1=="Yes"
+replace MandateLift=2 if Q1=="No"
+replace MandateLift=3 if Q1=="Not Sure"
+
+gen stillwearingmask=1 if Q2=="Yes"
+replace stillwearingmask=2 if Q2=="No"
+replace stillwearingmask=3 if Q2=="Unsure"
+
+la define MandateLift_lbl 1 "Yes" 2 "No" 3 "Not Sure"
+la val MandateLift MandateLift_lbl
+tab MandateLift stillwearingmask, column
+
+gen comfortlevel=1 if Q3=="More comfortable"
+replace comfortlevel=2 if Q3=="Less comfortable"
+replace comfortlevel=3 if Q3=="Indifferent"
+
+la define comfortlevel_lbl 1 "More Comfortable" 2 "Less comfortable" 3 "Indifferent"
+la val comfortlevel comfortlevel_lbl
+tab comfortlevel MandateLift, column
+
+la define stillwearingmask_lbl 1 "Yes" 2 "No" 3 "Unsure"
+la val stillwearingmask stillwearingmask_lbl
+tab stillwearingmask comfortlevel, column
+
+gen studentlevel=1 if Q5=="Undergraduate student"
+replace studentlevel=2 if Q5=="Graduate student"
+replace studentlevel=3 if Q5=="College of Extended Learning student"
+
+la define studentlevel_lbl 1 "Undergraduate" 2 "Graduate" 3 "College of Extended Learning"
+la val studentlevel studentlevel_lbl
+
+tab MandateLift studentlevel, column
+
+tab comfortlevel studentlevel, column
+
+tab comfortlevel MandateLift, column
